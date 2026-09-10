@@ -1,0 +1,5 @@
+dataset,generator,mean_strength,mean_leakage
+Davidson,Qwen2.5-0.5B-Instruct,0.589,0.135
+Davidson,Gemma-2-2B-IT,0.495,0.326
+TweetEval,Qwen2.5-0.5B-Instruct,0.409,0.265
+TweetEval,Gemma-2-2B-IT,0.428,0.343

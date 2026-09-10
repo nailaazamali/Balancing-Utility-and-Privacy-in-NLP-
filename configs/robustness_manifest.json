@@ -1,0 +1,32 @@
+{
+  "configurations": [
+    {
+      "name": "Davidson-Qwen2.5-0.5B",
+      "dataset": "Davidson",
+      "generator": "Qwen2.5-0.5B-Instruct",
+      "reported_mean_strength": 0.589,
+      "reported_mean_leakage": 0.135
+    },
+    {
+      "name": "Davidson-Gemma-2-2B",
+      "dataset": "Davidson",
+      "generator": "Gemma-2-2B-IT",
+      "reported_mean_strength": 0.495,
+      "reported_mean_leakage": 0.326
+    },
+    {
+      "name": "TweetEval-Qwen2.5-0.5B",
+      "dataset": "TweetEval",
+      "generator": "Qwen2.5-0.5B-Instruct",
+      "reported_mean_strength": 0.409,
+      "reported_mean_leakage": 0.265
+    },
+    {
+      "name": "TweetEval-Gemma-2-2B",
+      "dataset": "TweetEval",
+      "generator": "Gemma-2-2B-IT",
+      "reported_mean_strength": 0.428,
+      "reported_mean_leakage": 0.343
+    }
+  ]
+}

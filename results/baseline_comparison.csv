@@ -1,0 +1,4 @@
+method,feasible_n,total_n,feasible_percent,strength_mean,strength_sd,leakage_mean,leakage_sd,deltaP_mean,deltaP_sd,sbert_mean,sbert_sd,td_norm_mean,td_norm_sd
+Fixed-epsilon DP-MLM,441,466,94.6,0.492,0.038,0.345,0.032,0.421,0.035,0.432,0.040,0.690,0.048
+CusText,437,466,93.8,0.401,0.036,0.190,0.035,0.391,0.038,0.398,0.035,0.721,0.039
+Proposed,450,466,96.6,0.589,0.031,0.135,0.022,0.613,0.030,0.621,0.020,0.650,0.030

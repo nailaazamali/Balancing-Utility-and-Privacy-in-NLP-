@@ -1,0 +1,6 @@
+epsilon_token,mean_strength,mean_leakage,leakage_status
+0.25,0.589,0.135,below_target
+0.50,0.589,0.141,below_target
+1.00,0.599,0.334,above_max
+2.00,0.689,0.337,above_max
+4.00,0.789,0.436,above_max
