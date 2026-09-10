@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+.env
+.DS_Store
+outputs/
+checkpoints/
+*.pkl
+*.pkl.gz
+*.pt
+*.bin
+*.safetensors
+human_evaluation/*.xlsx
+data/raw/
