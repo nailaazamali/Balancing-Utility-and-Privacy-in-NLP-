@@ -1,4 +1,4 @@
-# XAILeakageNLP
+# Balancing Utility and Privacy in NLP
 
 This repository contains the implementation and reported experimental results for our work on privacy-aware counterfactual explanations in NLP.
 
