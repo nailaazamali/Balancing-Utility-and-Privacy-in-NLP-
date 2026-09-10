@@ -1,152 +1,129 @@
 # XAILeakageNLP
 
-Code and aggregate results for the paper:
+This repository contains the implementation and reported experimental results for our work on privacy-aware counterfactual explanations in NLP.
 
-> *Balancing Utility and Privacy in NLP Counterfactual Explanations: An ε_token-Optimised DP-MLM-Inspired Framework*
+The study examines a practical problem in counterfactual explanations: an explanation can improve the prediction outcome while also introducing or revealing sensitive information that was not present in the original text. Our framework therefore evaluates both the **usefulness of a counterfactual explanation** and the **privacy leakage it may introduce**.
 
-The repository contains the implementation of XAIStrengthNLP, XAILeakageNLP, sensitive-span detection, targeted DP-MLM-inspired sanitisation, and the final counterfactual selection procedure used in the paper.
+The repository accompanies the paper:
 
-## Repository scope
+**“Balancing Utility and Privacy in NLP Counterfactual Explanations: An ε_token-Optimised DP-MLM-Inspired Framework”**
 
-The code and aggregate result tables follow the final paper. The exact row-level split used for the paper experiments is not included, so this repository should be treated as an **implementation and aggregate-results release**, not as an exact end-to-end reproduction package.
+## What this work does
 
-The paper reports:
+The framework generates counterfactual text and evaluates it using two main measures:
 
-- 600 Davidson samples in the initial screening set;
-- 566 samples classified as toxic by Toxic-BERT;
-- 100 calibration samples;
-- 466 main evaluation samples;
-- 450 feasible final counterfactuals and 16 infeasible cases.
+- **XAIStrength** measures how useful the counterfactual explanation is. It combines the prediction change, semantic similarity to the original text, and the amount of textual modification.
+- **XAILeakage** measures whether the counterfactual introduces new sensitive information and whether that information is unsupported by the original text.
 
-`configs/reference.json` records these paper settings and `results/` contains the reported aggregate values.
+Sensitive information is detected using a combination of pattern matching, lexical categories, named-entity recognition, and contextual validation. Newly introduced sensitive content can then be rewritten using a **DP-MLM-inspired sanitisation step**. Candidate explanations are checked for validity and privacy constraints before the final explanation is selected.
 
-A separate archived cohort is included so that the pipeline can still be run. It uses 700 screened samples, 609 Toxic-BERT-positive samples, 100 calibration samples, and 450 evaluation samples. This archived cohort is **not** the paper split.
+The main experiments use the Davidson hate-speech/offensive-language dataset with **Toxic-BERT** as the classifier. The paper reports **466 evaluation instances**, of which **450 produced feasible counterfactual explanations** and **16 were infeasible** under the final constraints.
 
-See `RELEASE_SCOPE.md` and `DATA_PROVENANCE.md` for details.
+## Main result
 
-## Main method
+The proposed optimisation reduced the average **XAILeakage from 0.436 to 0.135**, corresponding to about a **69% reduction in leakage**. Over the same evaluation, average **XAIStrength changed from 0.689 to 0.589**, representing a **14.5% reduction in explanation strength**.
 
-The repository implements four main parts of the framework:
+These results show the trade-off studied in the paper: privacy leakage can be reduced substantially while retaining useful counterfactual explanations.
 
-- **XAIStrengthNLP**: combines positive classifier change, semantic similarity, and textual minimality.
-- **XAILeakageNLP**: measures newly introduced sensitive information and how unsupported that information is by the source text.
-- **DP-MLM-inspired sanitisation**: rewrites newly introduced sensitive spans using masked-language-model candidates and ε-controlled sampling.
-- **Counterfactual selection**: selects the strongest valid toxic-to-non-toxic counterfactual that satisfies the maximum leakage threshold.
+## Repository contents
 
-## Main settings
+The folders in this repository contain the implementation of the main parts of the framework, including counterfactual generation, sensitive-information detection, XAIStrength and XAILeakage calculation, DP-MLM-inspired sanitisation, candidate validation and selection, experiment scripts, and configuration files.
 
-| Setting | Value |
-| --- | --- |
-| Dataset | `tdavidson/hate_speech_offensive` |
-| Toxicity classifier | `unitary/toxic-bert` |
-| Primary generator | `Qwen/Qwen2.5-0.5B-Instruct` |
-| Sentence encoder | `sentence-transformers/all-MiniLM-L6-v2` |
-| Sensitive-context model | `facebook/bart-large-mnli` |
-| Unsupportedness NLI model | `cross-encoder/nli-deberta-v3-base` |
-| Masked LM | `roberta-base` |
-| ε_token grid | 0.25, 0.50, 1.0, 2.0, 4.0 |
-| Rewrite fractions | 0.25, 0.50, 0.75, 1.0 |
-| Sensitive-context threshold | 0.60 |
-| Semantic-similarity threshold | 0.60 |
-| Maximum normalised token distance | 0.80 |
-| Preferred leakage target | 0.15 |
-| Maximum leakage | 0.30 |
-| Seed | 42 |
+The following result files are included at the top level for quick access:
 
-## Data included in the repository
+### `main_summary.csv`
 
-Raw Davidson tweet text is not stored in the bundled CSV files. The archived manifests contain dataset indices and experiment metadata only. When the archived example is run, `src/data.py` loads the source text from the upstream Davidson dataset using `dataset_index`.
+Contains the main before-and-after results reported in the paper, including:
 
-This avoids republishing usernames from the original dataset in this repository. The upstream dataset contains offensive and hateful language and should be handled accordingly.
+- initial and optimised XAIStrength;
+- initial and optimised XAILeakage;
+- percentage reduction in leakage; and
+- percentage change in explanation strength.
 
-## Installation
+This file summarises the main utility–privacy result of the proposed framework.
 
-Python 3.12 is recommended.
+### `feasibility_summary.csv`
 
-```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-python -m spacy download en_core_web_sm
-```
+Reports the number of evaluation cases for which the framework found a valid explanation satisfying the required constraints.
 
-## Check the repository
+For the main experiment:
 
-```bash
-python scripts/validate_repository.py
-```
+- total evaluation instances: **466**;
+- feasible counterfactuals: **450**;
+- infeasible cases: **16**.
 
-The validation script checks the bundled cohort structure, the paper aggregate summaries, and the absence of raw tweet text, cached Python files, and old human-evaluation spreadsheets.
+### `fixed_epsilon_ablation.csv`
 
-## Run the archived example
+Contains the fixed-ε analysis used to study how different privacy settings affect explanation strength and leakage.
 
-```bash
-python experiments/run_main.py \
-  --config configs/archived_run.json \
-  --device cpu \
-  --output-dir outputs/archived_demo
-```
+The evaluated ε values are:
 
-For a short pipeline check:
+`0.25, 0.50, 1.00, 2.00, 4.00`
 
-```bash
-python experiments/run_main.py --limit 2 --device cpu
-```
+This experiment helps show how the privacy setting changes the utility–privacy trade-off.
 
-The notebook `notebooks/run_archived_example.ipynb` uses the same archived configuration.
+### `baseline_comparison.csv`
 
-## Fixed-ε analysis
+Contains the comparison between the proposed framework and the two privacy-oriented baselines used in the paper:
 
-After running the archived example:
+- **Fixed-ε DP-MLM**
+- **CusText**
+- **Proposed framework**
 
-```bash
-python scripts/merge_candidates.py outputs/archived_demo/candidate_pools
-python experiments/fixed_epsilon.py outputs/archived_demo/all_candidates.csv.gz
-```
+The comparison includes feasibility and the main explanation-quality and privacy measures.
 
-The fixed-ε values reported in the paper are stored in `results/fixed_epsilon_ablation.csv`.
+### `robustness_summary.csv`
 
-## Baselines
+Contains the robustness results reported across different dataset and generator combinations.
 
-The baseline scripts evaluate externally generated candidate texts using the same validity, XAIStrengthNLP, and XAILeakageNLP calculations used for the proposed method. Baseline candidate generation itself is not reproduced here.
+The paper evaluates combinations involving:
 
-See `baselines/README.md` for the fixed-ε DP-MLM and CusText setup.
+- Davidson + Qwen;
+- Davidson + Gemma;
+- TweetEval + Qwen; and
+- TweetEval + Gemma.
 
-## Robustness experiments
+This checks whether the observed utility–privacy behaviour is limited to one model or dataset.
 
-The reported Davidson/TweetEval and Qwen/Gemma aggregate results are stored in `results/robustness_summary.csv`. `experiments/robustness.py` can be used to summarise compatible new result files.
+### `human_evaluation_summary.csv`
 
-## Human evaluation
+Contains the aggregate human-evaluation results reported in the paper.
 
-The paper reports a two-annotator review of 450 feasible counterfactuals. The two annotators initially agreed on 412 cases (91.6%), with Cohen's κ = 0.831. The 38 disagreements were resolved through discussion.
+The final feasible counterfactuals were manually reviewed for sensitive-information behaviour and explanation quality. The paper reports agreement on **412 of 450 cases (91.6%)**, with **Cohen’s κ = 0.831**.
 
-This repository includes the annotation protocol, a blank annotation template, and the aggregate agreement statistics. The original row-level annotations are not included. Older exploratory human-evaluation spreadsheets have been removed because they used earlier versions of the metrics.
+### `archived_run_data_summary.csv`
 
-## Reported results
+Summarises the separate archived runnable cohort included with the repository.
 
-The main aggregate values stored under `results/` are:
+This archived run is provided to demonstrate the implementation and workflow. It is **not the exact source-level split used to produce the main paper results**, so it should not be interpreted as a row-by-row reproduction of the 466-case paper experiment.
 
-- XAILeakageNLP: 0.436 → 0.135;
-- XAIStrengthNLP: 0.689 → 0.589;
-- feasible final counterfactuals: 450 / 466;
-- fixed-ε results;
-- fixed-ε DP-MLM and CusText comparison;
-- robustness results across dataset-generator combinations; and
-- human-evaluation agreement statistics.
+## Scope of this repository
 
-## Repository structure
+This repository should be read as a **paper-aligned implementation and aggregate-results release**.
 
-```text
-configs/            paper settings and archived-run configuration
-data/               archived dataset-index manifests
-experiments/        main, baseline, fixed-epsilon, and robustness scripts
-human_evaluation/   annotation protocol and blank annotation template
-notebooks/          archived example notebook
-results/            aggregate results reported in the paper
-scripts/            validation and utility scripts
-src/                implementation of the framework
-```
+The code follows the methodology described in the paper, and the included summary CSV files record the aggregate results reported in the experiments. The exact source-level split used for every paper experiment is not included, so the repository does not claim exact row-by-row reproduction of all reported results.
 
-## Licence and citation
+## Main components implemented
 
-See `LICENSE` for the repository reuse terms and `CITATION.cff` for citation information. External datasets, models, and baseline implementations remain subject to their own licences and terms.
+The repository includes code for:
+
+- counterfactual candidate generation;
+- Toxic-BERT prediction scoring;
+- semantic similarity using SBERT;
+- textual-distance and minimality calculation;
+- XAIStrength calculation;
+- sensitive-information detection;
+- source-relative sensitive-information comparison;
+- unsupported-sensitive-content estimation;
+- XAILeakage calculation;
+- DP-MLM-inspired sensitive-span rewriting;
+- validity and privacy-constraint checks; and
+- final counterfactual selection.
+
+## Citation
+
+If you use this implementation or the reported results, please cite the associated paper:
+
+**Naila Azam, Vasilis Efthymiou, and Georgios Loukas.  
+“Balancing Utility and Privacy in NLP Counterfactual Explanations: An ε_token-Optimised DP-MLM-Inspired Framework.”**
+
