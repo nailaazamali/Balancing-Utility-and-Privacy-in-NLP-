@@ -124,6 +124,6 @@ The repository includes code for:
 
 If you use this implementation or the reported results, please cite the associated paper:
 
-**Naila Azam, Vasilis Efthymiou, and Georgios Loukas.  
+**Naila Azam and Georgios Loukas.  
 “Balancing Utility and Privacy in NLP Counterfactual Explanations: An ε_token-Optimised DP-MLM-Inspired Framework.”**
 
